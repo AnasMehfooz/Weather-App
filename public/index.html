@@ -22,10 +22,11 @@
                 </div>
             </div>
             
-            <!-- Search Bar with Suggestions Dropdown -->
+            <!-- Search Bar with Instant Autocomplete Dropdown & Datalist -->
             <div class="search-bar">
                 <div class="search-input-wrapper">
-                    <input type="text" id="cityInput" placeholder="Search city (e.g., Berlin, Paris, Tokyo)..." value="Berlin" autocomplete="off">
+                    <input type="text" id="cityInput" list="cityDatalist" placeholder="Type city name (e.g. Berlin, Paris)..." value="Berlin" autocomplete="off">
+                    <datalist id="cityDatalist"></datalist>
                     <ul id="suggestionsList" class="suggestions-list hidden"></ul>
                 </div>
                 <button id="searchBtn" aria-label="Search city weather">Fetch Weather</button>

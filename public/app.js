@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cityInput = document.getElementById('cityInput');
     const searchBtn = document.getElementById('searchBtn');
     const suggestionsList = document.getElementById('suggestionsList');
+    const cityDatalist = document.getElementById('cityDatalist');
     const weatherContent = document.getElementById('weatherContent');
     const scoreValue = document.getElementById('scoreValue');
     const scoreBar = document.getElementById('scoreBar');
@@ -22,23 +23,79 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeFilter = "all";
     let debounceTimer = null;
     let selectedSuggestionIndex = -1;
+
     let tasksData = [
         { id: "task-1", title: "Morning Jogging", category: "Fitness", location: "Berlin", outdoor: true, status: "pending" },
         { id: "task-2", title: "Car Washing", category: "Chores", location: "Berlin", outdoor: true, status: "pending" },
         { id: "task-3", title: "Read Java & Web Dev Chapter", category: "Study", location: "Indoor", outdoor: false, status: "completed" }
     ];
 
-    // Pre-defined fallback suggestions for offline/static usage
-    const fallbackCities = [
+    // Rich dataset of cities for instant 1-character popup suggestions
+    const cityDatabase = [
         { name: "Berlin", country: "Germany" },
         { name: "Munich", country: "Germany" },
         { name: "Hamburg", country: "Germany" },
+        { name: "Frankfurt", country: "Germany" },
+        { name: "Cologne", country: "Germany" },
+        { name: "Stuttgart", country: "Germany" },
+        { name: "Düsseldorf", country: "Germany" },
+        { name: "Dresden", country: "Germany" },
+        { name: "Leipzig", country: "Germany" },
+        { name: "Vienna", country: "Austria" },
+        { name: "Zurich", country: "Switzerland" },
+        { name: "Geneva", country: "Switzerland" },
         { name: "Paris", country: "France" },
+        { name: "Lyon", country: "France" },
+        { name: "Marseille", country: "France" },
         { name: "London", country: "United Kingdom" },
+        { name: "Manchester", country: "United Kingdom" },
+        { name: "Edinburgh", country: "United Kingdom" },
+        { name: "Dublin", country: "Ireland" },
+        { name: "Madrid", country: "Spain" },
+        { name: "Barcelona", country: "Spain" },
+        { name: "Rome", country: "Italy" },
+        { name: "Milan", country: "Italy" },
+        { name: "Amsterdam", country: "Netherlands" },
+        { name: "Brussels", country: "Belgium" },
+        { name: "Prague", country: "Czech Republic" },
+        { name: "Warsaw", country: "Poland" },
+        { name: "Budapest", country: "Hungary" },
+        { name: "Athens", country: "Greece" },
+        { name: "Istanbul", country: "Turkey" },
+        { name: "Lisbon", country: "Portugal" },
+        { name: "Stockholm", country: "Sweden" },
+        { name: "Oslo", country: "Norway" },
+        { name: "Copenhagen", country: "Denmark" },
+        { name: "Helsinki", country: "Finland" },
         { name: "New York", country: "United States" },
+        { name: "Los Angeles", country: "United States" },
+        { name: "Chicago", country: "United States" },
+        { name: "Miami", country: "United States" },
+        { name: "San Francisco", country: "United States" },
+        { name: "Toronto", country: "Canada" },
+        { name: "Vancouver", country: "Canada" },
+        { name: "Montreal", country: "Canada" },
         { name: "Tokyo", country: "Japan" },
-        { name: "Dubai", country: "United Arab Emirates" }
+        { name: "Osaka", country: "Japan" },
+        { name: "Seoul", country: "South Korea" },
+        { name: "Beijing", country: "China" },
+        { name: "Shanghai", country: "China" },
+        { name: "Hong Kong", country: "China" },
+        { name: "Singapore", country: "Singapore" },
+        { name: "Dubai", country: "United Arab Emirates" },
+        { name: "Abu Dhabi", country: "United Arab Emirates" },
+        { name: "Sydney", country: "Australia" },
+        { name: "Melbourne", country: "Australia" }
     ];
+
+    // Populate HTML datalist for native browser popup support
+    function initDatalist() {
+        if (!cityDatalist) return;
+        cityDatalist.innerHTML = cityDatabase.map(c => 
+            `<option value="${escapeHtml(c.name)}">${escapeHtml(c.country)}</option>`
+        ).join('');
+    }
+    initDatalist();
 
     function getClientFallbackWeather(city) {
         const cityName = city ? (city.charAt(0).toUpperCase() + city.slice(1)) : "Berlin";
@@ -67,30 +124,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // City Autocomplete / Suggestions Handling
+    // Instant City Autocomplete & Popup Logic
     // ==========================================
-    async function fetchCitySuggestions(query) {
-        if (!query || query.trim().length < 2) {
+    function handleCityInput(query) {
+        if (!query || query.trim().length === 0) {
             hideSuggestions();
             return;
         }
 
-        try {
-            const res = await fetch(`/api/cities/suggest?query=${encodeURIComponent(query)}`);
-            if (res.ok) {
-                const suggestions = await res.json();
-                renderSuggestions(suggestions);
-                return;
-            }
-        } catch (err) {
-            console.warn("Using local fallback suggestions:", err);
-        }
+        const cleanQuery = query.trim().toLowerCase();
+        
+        // Instant local match (starts with or contains query)
+        const matches = cityDatabase.filter(c => 
+            c.name.toLowerCase().startsWith(cleanQuery) || c.name.toLowerCase().includes(cleanQuery)
+        ).slice(0, 6);
 
-        // Local fallback filter
-        const matches = fallbackCities.filter(c => 
-            c.name.toLowerCase().includes(query.toLowerCase())
-        );
         renderSuggestions(matches);
+
+        // Async fetch for broader online search
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/cities/suggest?query=${encodeURIComponent(query)}`);
+                if (res.ok) {
+                    const onlineSuggestions = await res.json();
+                    if (onlineSuggestions && onlineSuggestions.length > 0) {
+                        renderSuggestions(onlineSuggestions);
+                    }
+                }
+            } catch (err) {
+                // Silently keep local matches
+            }
+        }, 150);
     }
 
     function renderSuggestions(suggestions) {
@@ -109,10 +174,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         suggestionsList.classList.remove('hidden');
 
-        // Add click events to suggestions
         const items = suggestionsList.querySelectorAll('.suggestion-item');
         items.forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
                 selectCity(item.dataset.name);
             });
         });
@@ -130,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchWeather(cityName);
     }
 
-    // Weather API fetch handler
+    // Weather API handler
     async function fetchWeather(city) {
         weatherContent.innerHTML = `<div class="loading-spinner">Loading weather for ${city}...</div>`;
         try {
@@ -139,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             renderWeather(data);
         } catch (err) {
-            console.warn("Using client fallback weather data:", err);
+            console.warn("Using fallback weather:", err);
             renderWeather(getClientFallbackWeather(city));
         }
     }
@@ -148,7 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentCity = data.city;
         cityInput.value = `${data.city}${data.country ? ', ' + data.country : ''}`;
 
-        // Weather header
         weatherContent.innerHTML = `
             <div class="weather-hero">
                 <div class="weather-temp-box">
@@ -166,13 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // Suitability score
         const score = data.suitability.score;
         scoreValue.textContent = `${score}%`;
         scoreBar.style.width = `${score}%`;
         recommendationText.textContent = `${data.suitability.recommendation}`;
 
-        // 5-hour forecast
         hourlyList.innerHTML = data.forecast.map(item => `
             <div class="hourly-item">
                 <div class="hourly-time">${item.time}</div>
@@ -182,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // Task management functions
+    // Task Management
     async function fetchTasks() {
         try {
             const res = await fetch('/api/tasks');
@@ -190,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tasksData = await res.json();
             renderTasks();
         } catch (err) {
-            console.warn("Using local tasks memory:", err);
             renderTasks();
         }
     }
@@ -300,13 +361,13 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
-    // Input Event Listeners for Autocomplete
+    // Input listeners for instant typing suggestions
+    cityInput.addEventListener('focus', () => {
+        handleCityInput(cityInput.value);
+    });
+
     cityInput.addEventListener('input', (e) => {
-        clearTimeout(debounceTimer);
-        const query = e.target.value.trim();
-        debounceTimer = setTimeout(() => {
-            fetchCitySuggestions(query);
-        }, 250);
+        handleCityInput(e.target.value);
     });
 
     cityInput.addEventListener('keydown', (e) => {
@@ -350,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Hide suggestions on outside click
+    // Hide popup when clicking outside
     document.addEventListener('click', (e) => {
         if (!cityInput.contains(e.target) && !suggestionsList.contains(e.target)) {
             hideSuggestions();
@@ -381,7 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Initial load
     fetchWeather("Berlin");
     fetchTasks();
 });
