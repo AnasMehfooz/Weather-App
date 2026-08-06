@@ -2,3 +2,6 @@ node_modules/
 ~$*.pptx
 *.log
 tasks.json
+Mustermann-Max*
+generate_p*.py
+clean_git.py
