@@ -1,0 +1,23 @@
+{
+  "name": "weathersync",
+  "version": "1.0.0",
+  "description": "WeatherSync - Smart Activity & Weather-Integrated Task Planner",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/server.test.js"
+  },
+  "keywords": [
+    "java-web-dev",
+    "express",
+    "node",
+    "weather",
+    "tasks"
+  ],
+  "author": "IU Student",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherSync - Smart Activity & Task Planner</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-group">
+                <span class="logo-icon">⚡</span>
+                <div>
+                    <h1>WeatherSync</h1>
+                    <p class="subtitle">Smart Activity & Weather-Integrated Task Planner</p>
+                </div>
+            </div>
+            
+            <!-- City Search Bar (Dynamic Aspect 1) -->
+            <div class="search-bar">
+                <input type="text" id="cityInput" placeholder="Search city (e.g. Berlin, Munich)..." value="Berlin" id="city-search">
+                <button id="searchBtn" aria-label="Search city weather">Fetch Weather</button>
+            </div>
+        </header>
+
+        <!-- Main Grid Layout -->
+        <main class="main-grid">
+            <!-- Left Column: Weather & Suitability Dashboard -->
+            <section class="card weather-card" id="weather-section">
+                <div class="card-header">
+                    <h2>Live Weather & Suitability</h2>
+                    <span class="badge live-badge">Live Sync</span>
+                </div>
+                
+                <div id="weatherContent" class="weather-content">
+                    <!-- Dynamic weather data loaded via JS -->
+                    <div class="loading-spinner">Loading weather metrics...</div>
+                </div>
+
+                <!-- Suitability Meter -->
+                <div class="suitability-box" id="suitabilityBox">
+                    <div class="suitability-header">
+                        <span>Outdoor Activity Score</span>
+                        <span id="scoreValue" class="score-num">--%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="scoreBar" class="progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                    <p id="recommendationText" class="recommendation-text">Fetching suitability score...</p>
+                </div>
+
+                <!-- Hourly Forecast -->
+                <div class="forecast-container">
+                    <h3>5-Hour Outlook</h3>
+                    <div id="hourlyList" class="hourly-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Task Manager (Dynamic Aspect 2) -->
+            <section class="card tasks-card" id="tasks-section">
+                <div class="card-header">
+                    <h2>Planned Tasks & Activities</h2>
+                    <div class="filter-group">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="outdoor">Outdoor</button>
+                        <button class="filter-btn" data-filter="indoor">Indoor</button>
+                    </div>
+                </div>
+
+                <!-- Add Task Form -->
+                <form id="addTaskForm" class="add-task-form">
+                    <div class="form-row">
+                        <input type="text" id="taskTitle" placeholder="Add new task (e.g., Morning Jog)..." required>
+                        <select id="taskCategory">
+                            <option value="Fitness">Fitness 🏃</option>
+                            <option value="Chores">Chores 🧹</option>
+                            <option value="Work">Work 💼</option>
+                            <option value="Social">Social ☕</option>
+                        </select>
+                    </div>
+                    <div class="form-row secondary-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="taskOutdoor" checked>
+                            <span>Outdoor Activity</span>
+                        </label>
+                        <button type="submit" class="btn-primary">+ Add Task</button>
+                    </div>
+                </form>
+
+                <!-- Tasks List -->
+                <div class="tasks-container">
+                    <ul id="taskList" class="task-list">
+                        <!-- Loaded dynamically via JS -->
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Project Java and Web Development (DLBCSPJWD01) | IU Portfolio Project</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
