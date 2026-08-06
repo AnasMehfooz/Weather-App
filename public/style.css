@@ -91,12 +91,18 @@ body {
     color: var(--text-secondary);
 }
 
-/* Search Bar */
+/* Search Bar & Autocomplete Suggestions Dropdown */
 .search-bar {
     display: flex;
     gap: 0.5rem;
     flex-grow: 1;
-    max-width: 400px;
+    max-width: 420px;
+    position: relative;
+}
+
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
 }
 
 .search-bar input {
@@ -113,6 +119,51 @@ body {
 
 .search-bar input:focus {
     border-color: var(--accent-blue);
+}
+
+.suggestions-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #1e293b;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    list-style: none;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 100;
+    backdrop-filter: blur(16px);
+}
+
+.suggestions-list.hidden {
+    display: none;
+}
+
+.suggestion-item {
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.15s;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover, .suggestion-item.active {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--accent-blue);
+}
+
+.suggestion-country {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
 }
 
 .search-bar button, .btn-primary {

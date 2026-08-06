@@ -36,6 +36,21 @@ test('Suitability calculation for bad weather', () => {
     assert.ok(score < 30);
 });
 
+test('City suggestion filtering', () => {
+    const popularCities = [
+        { name: "Berlin", country: "Germany" },
+        { name: "Munich", country: "Germany" },
+        { name: "Paris", country: "France" }
+    ];
+
+    const matches = popularCities.filter(c => 
+        c.name.toLowerCase().includes("ber".toLowerCase())
+    );
+
+    assert.strictEqual(matches.length, 1);
+    assert.strictEqual(matches[0].name, "Berlin");
+});
+
 test('Task data object format', () => {
     const sampleTask = {
         id: "task-100",

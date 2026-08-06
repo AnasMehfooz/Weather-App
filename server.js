@@ -1,5 +1,5 @@
 // Express server for Weather App
-// Backend API handling weather data fetching and task storage
+// Backend API handling weather data fetching, city suggestions, and task storage
 
 const express = require('express');
 const cors = require('cors');
@@ -14,7 +14,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Default initial tasks
+// Popular cities list for offline/fallback suggestions
+const popularCities = [
+    { name: "Berlin", country: "Germany" },
+    { name: "Munich", country: "Germany" },
+    { name: "Hamburg", country: "Germany" },
+    { name: "Frankfurt", country: "Germany" },
+    { name: "Cologne", country: "Germany" },
+    { name: "London", country: "United Kingdom" },
+    { name: "Paris", country: "France" },
+    { name: "New York", country: "United States" },
+    { name: "Tokyo", country: "Japan" },
+    { name: "Dubai", country: "United Arab Emirates" },
+    { name: "Rome", country: "Italy" },
+    { name: "Madrid", country: "Spain" },
+    { name: "Amsterdam", country: "Netherlands" },
+    { name: "Toronto", country: "Canada" },
+    { name: "Sydney", country: "Australia" }
+];
+
+// Initial tasks
 const initialTasks = [
     {
         id: "task-1",
@@ -107,9 +126,8 @@ function getWeatherDescription(code) {
     return map[code] || { desc: "Cloudy", icon: "☁️" };
 }
 
-// Fallback weather data generator for offline/network issues
 function getFallbackWeather(city) {
-    const name = city.charAt(0).toUpperCase() + city.slice(1);
+    const name = city ? (city.charAt(0).toUpperCase() + city.slice(1)) : "Berlin";
     const temp = 21.5;
     const wind = 12.0;
     const weatherCode = 1;
@@ -144,7 +162,38 @@ app.get('/api/health', (req, res) => {
     res.json({ status: "OK", timestamp: new Date() });
 });
 
-// Weather endpoint with fallback mechanism
+// City Autocomplete / Suggestions Endpoint
+app.get('/api/cities/suggest', async (req, res) => {
+    const query = req.query.query || "";
+    if (!query || query.trim().length < 2) {
+        return res.json([]);
+    }
+
+    try {
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
+        const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(3000) });
+        const geoData = await geoRes.json();
+
+        if (geoData.results && geoData.results.length > 0) {
+            const suggestions = geoData.results.map(item => ({
+                name: item.name,
+                country: item.country || "",
+                admin1: item.admin1 || ""
+            }));
+            return res.json(suggestions);
+        }
+    } catch (err) {
+        console.warn("Geocoding suggest API error, using local match:", err.message);
+    }
+
+    // Local fallback filter
+    const matches = popularCities.filter(c => 
+        c.name.toLowerCase().includes(query.toLowerCase())
+    );
+    res.json(matches);
+});
+
+// Weather endpoint with fallback
 app.get('/api/weather', async (req, res) => {
     const city = req.query.city || "Berlin";
 
@@ -210,7 +259,7 @@ app.get('/api/weather', async (req, res) => {
     }
 });
 
-// Task Management Endpoints
+// Task Endpoints
 app.get('/api/tasks', (req, res) => {
     const tasks = loadTasks();
     res.json(tasks);
