@@ -27,8 +27,8 @@ WeatherSync is a responsive web application designed to connect daily task manag
 
 ### Step 1: Clone or Extract Repository
 ```bash
-git clone https://github.com/YourUsername/WeatherSync.git
-cd WeatherSync
+git clone https://github.com/AnasMehfooz/Weather-App.git
+cd Weather-App
 ```
 
 ### Step 2: Install Dependencies
