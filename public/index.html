@@ -3,48 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeatherSync - Smart Activity & Task Planner</title>
-    <!-- Modern Typography -->
+    <title>WeatherSync - Smart Task Planner</title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- App Container -->
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
             <div class="logo-group">
-                <span class="logo-icon">⚡</span>
+                <span class="logo-icon">⛅</span>
                 <div>
                     <h1>WeatherSync</h1>
-                    <p class="subtitle">Smart Activity & Weather-Integrated Task Planner</p>
+                    <p class="subtitle">Personal Weather & Task Planning App</p>
                 </div>
             </div>
             
-            <!-- City Search Bar (Dynamic Aspect 1) -->
             <div class="search-bar">
-                <input type="text" id="cityInput" placeholder="Search city (e.g. Berlin, Munich)..." value="Berlin" id="city-search">
+                <input type="text" id="cityInput" placeholder="Search city..." value="Berlin">
                 <button id="searchBtn" aria-label="Search city weather">Fetch Weather</button>
             </div>
         </header>
 
-        <!-- Main Grid Layout -->
+        <!-- Main Layout -->
         <main class="main-grid">
-            <!-- Left Column: Weather & Suitability Dashboard -->
+            <!-- Weather Section -->
             <section class="card weather-card" id="weather-section">
                 <div class="card-header">
-                    <h2>Live Weather & Suitability</h2>
-                    <span class="badge live-badge">Live Sync</span>
+                    <h2>Live Weather & Score</h2>
+                    <span class="badge live-badge">Active</span>
                 </div>
                 
                 <div id="weatherContent" class="weather-content">
-                    <!-- Dynamic weather data loaded via JS -->
                     <div class="loading-spinner">Loading weather metrics...</div>
                 </div>
 
-                <!-- Suitability Meter -->
                 <div class="suitability-box" id="suitabilityBox">
                     <div class="suitability-header">
                         <span>Outdoor Activity Score</span>
@@ -53,22 +49,19 @@
                     <div class="progress-bar-bg">
                         <div id="scoreBar" class="progress-bar-fill" style="width: 0%;"></div>
                     </div>
-                    <p id="recommendationText" class="recommendation-text">Fetching suitability score...</p>
+                    <p id="recommendationText" class="recommendation-text">Calculating score...</p>
                 </div>
 
-                <!-- Hourly Forecast -->
                 <div class="forecast-container">
                     <h3>5-Hour Outlook</h3>
-                    <div id="hourlyList" class="hourly-list">
-                        <!-- Loaded dynamically -->
-                    </div>
+                    <div id="hourlyList" class="hourly-list"></div>
                 </div>
             </section>
 
-            <!-- Right Column: Task Manager (Dynamic Aspect 2) -->
+            <!-- Tasks Section -->
             <section class="card tasks-card" id="tasks-section">
                 <div class="card-header">
-                    <h2>Planned Tasks & Activities</h2>
+                    <h2>My Tasks & Activities</h2>
                     <div class="filter-group">
                         <button class="filter-btn active" data-filter="all">All</button>
                         <button class="filter-btn" data-filter="outdoor">Outdoor</button>
@@ -76,10 +69,9 @@
                     </div>
                 </div>
 
-                <!-- Add Task Form -->
                 <form id="addTaskForm" class="add-task-form">
                     <div class="form-row">
-                        <input type="text" id="taskTitle" placeholder="Add new task (e.g., Morning Jog)..." required>
+                        <input type="text" id="taskTitle" placeholder="Add a new task..." required>
                         <select id="taskCategory">
                             <option value="Fitness">Fitness 🏃</option>
                             <option value="Chores">Chores 🧹</option>
@@ -96,18 +88,15 @@
                     </div>
                 </form>
 
-                <!-- Tasks List -->
                 <div class="tasks-container">
-                    <ul id="taskList" class="task-list">
-                        <!-- Loaded dynamically via JS -->
-                    </ul>
+                    <ul id="taskList" class="task-list"></ul>
                 </div>
             </section>
         </main>
 
         <!-- Footer -->
         <footer class="app-footer">
-            <p>Project Java and Web Development (DLBCSPJWD01) | IU Portfolio Project</p>
+            <p>&copy; 2026 Anas Mehfooz | DLBCSPJWD01 Course Project</p>
         </footer>
     </div>
 

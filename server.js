@@ -1,13 +1,5 @@
-/**
- * WeatherSync Backend Server
- * Course: Project Java and Web Development (DLBCSPJWD01)
- * 
- * Features:
- * 1. Consumes Open-Meteo REST API on the backend to retrieve real-time weather & forecasts.
- * 2. Transforms raw weather data into activity suitability scores for frontend consumption.
- * 3. Provides RESTful CRUD endpoints for task management.
- * 4. Serves frontend static files and provides robust error handling.
- */
+// Express server for Weather App
+// Backend API handling weather data fetching and task storage
 
 const express = require('express');
 const cors = require('cors');
@@ -18,12 +10,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const TASKS_FILE = path.join(__dirname, 'tasks.json');
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Initial seed tasks if tasks.json doesn't exist
+// Default initial tasks
 const initialTasks = [
     {
         id: "task-1",
@@ -54,7 +45,7 @@ const initialTasks = [
     }
 ];
 
-// Ensure tasks storage exists
+// Helper functions for reading/writing tasks.json
 function loadTasks() {
     try {
         if (!fs.existsSync(TASKS_FILE)) {
@@ -77,39 +68,35 @@ function saveTasks(tasks) {
     }
 }
 
-/**
- * Activity Suitability Algorithm
- * Evaluates weather conditions (temp, precipitation, wind, weathercode) 
- * and calculates a 0-100% suitability rating for outdoor activities.
- */
+// Calculate weather score for outdoor activity (0 to 100)
 function calculateSuitability(temp, precipProb, windspeed, weatherCode) {
     let score = 100;
 
-    // Temperature penalty (Ideal range: 15°C - 25°C)
+    // Deduct points if temperature is too cold or too hot
     if (temp < 10) score -= (10 - temp) * 3;
     else if (temp > 28) score -= (temp - 28) * 4;
 
-    // Rain / Precipitation penalty
+    // Deduct for rain chance
     score -= precipProb * 0.8;
 
-    // Wind speed penalty (Ideal: < 20 km/h)
+    // Deduct for high wind
     if (windspeed > 20) score -= (windspeed - 20) * 1.5;
 
-    // Weather code severe conditions (Thunderstorm, Snow, Heavy Rain)
+    // Deduct heavily for severe weather (storms, heavy snow, heavy rain)
     if ([95, 96, 99, 71, 73, 75, 65].includes(weatherCode)) {
         score -= 40;
     }
 
     score = Math.max(0, Math.min(100, Math.round(score)));
     
-    let recommendation = "Ideal for Outdoor Activities";
-    if (score < 40) recommendation = "Poor Weather - Move Tasks Indoors";
-    else if (score < 75) recommendation = "Moderate Conditions - Exercise Caution";
+    let recommendation = "Great conditions for outdoor activities!";
+    if (score < 40) recommendation = "Poor weather - stay indoors today";
+    else if (score < 75) recommendation = "Moderate weather - keep an eye on conditions";
 
     return { score, recommendation };
 }
 
-// Map WMO Weather Interpretation Codes to human readable descriptions & icons
+// Helper to get weather icon and description from WMO code
 function getWeatherDescription(code) {
     const map = {
         0: { desc: "Clear Sky", icon: "☀️" },
@@ -127,21 +114,19 @@ function getWeatherDescription(code) {
     return map[code] || { desc: "Cloudy", icon: "☁️" };
 }
 
-// ==========================================
-// REST API ENDPOINTS
-// ==========================================
+// API Routes
 
-// Health Check Endpoint
+// Health check endpoint
 app.get('/api/health', (req, res) => {
-    res.json({ status: "OK", service: "WeatherSync API", timestamp: new Date() });
+    res.json({ status: "OK", timestamp: new Date() });
 });
 
-// Dynamic Aspect 1: Weather API Endpoint (Backend fetches Open-Meteo & transforms payload)
+// Fetch weather from Open-Meteo API and process data
 app.get('/api/weather', async (req, res) => {
     try {
         const city = req.query.city || "Berlin";
 
-        // 1. Geocoding request
+        // Step 1: Geocoding lookup for lat/lon
         const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
         const geoRes = await fetch(geoUrl);
         const geoData = await geoRes.json();
@@ -154,7 +139,7 @@ app.get('/api/weather', async (req, res) => {
         const lat = location.latitude;
         const lon = location.longitude;
 
-        // 2. Weather forecast request
+        // Step 2: Get forecast data
         const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,weathercode,windspeed_10m&timezone=auto`;
         const weatherRes = await fetch(weatherUrl);
         const weatherData = await weatherRes.json();
@@ -162,13 +147,11 @@ app.get('/api/weather', async (req, res) => {
         const current = weatherData.current_weather;
         const currentCode = current.weathercode;
         const weatherInfo = getWeatherDescription(currentCode);
-
-        // Calculate outdoor suitability score
-        // Default precip prob to 0 if not available in current
         const precipProb = weatherData.hourly?.precipitation_probability?.[0] || 0;
+
         const suitability = calculateSuitability(current.temperature, precipProb, current.windspeed, currentCode);
 
-        // Hourly forecast summary (next 5 hours)
+        // Get 5-hour forecast
         const hourlyForecast = [];
         if (weatherData.hourly && weatherData.hourly.time) {
             for (let i = 0; i < 5; i++) {
@@ -186,7 +169,7 @@ app.get('/api/weather', async (req, res) => {
             }
         }
 
-        const responsePayload = {
+        res.json({
             city: location.name,
             country: location.country,
             coordinates: { lat, lon },
@@ -200,28 +183,26 @@ app.get('/api/weather', async (req, res) => {
             },
             suitability: suitability,
             forecast: hourlyForecast
-        };
-
-        res.json(responsePayload);
+        });
     } catch (error) {
-        console.error("Error fetching weather data:", error);
-        res.status(500).json({ error: "Failed to retrieve transformed weather data from server." });
+        console.error("Error fetching weather:", error);
+        res.status(500).json({ error: "Failed to load weather data." });
     }
 });
 
-// Dynamic Aspect 2: Task CRUD Endpoints
+// Task Management Endpoints
 
-// GET /api/tasks
+// Get all tasks
 app.get('/api/tasks', (req, res) => {
     const tasks = loadTasks();
     res.json(tasks);
 });
 
-// POST /api/tasks
+// Create new task
 app.post('/api/tasks', (req, res) => {
     const { title, category, location, outdoor } = req.body;
     if (!title || title.trim() === "") {
-        return res.status(400).json({ error: "Task title is required." });
+        return res.status(400).json({ error: "Title is required." });
     }
 
     const tasks = loadTasks();
@@ -240,7 +221,7 @@ app.post('/api/tasks', (req, res) => {
     res.status(201).json(newTask);
 });
 
-// PUT /api/tasks/:id
+// Update task status or fields
 app.put('/api/tasks/:id', (req, res) => {
     const { id } = req.params;
     const { status, title, category, outdoor } = req.body;
@@ -261,7 +242,7 @@ app.put('/api/tasks/:id', (req, res) => {
     res.json(tasks[index]);
 });
 
-// DELETE /api/tasks/:id
+// Delete task
 app.delete('/api/tasks/:id', (req, res) => {
     const { id } = req.params;
     let tasks = loadTasks();
@@ -274,12 +255,11 @@ app.delete('/api/tasks/:id', (req, res) => {
     }
 
     saveTasks(tasks);
-    res.json({ message: "Task deleted successfully.", id });
+    res.json({ message: "Task deleted.", id });
 });
 
-// Start Server
 app.listen(PORT, () => {
-    console.log(`WeatherSync Server is running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;

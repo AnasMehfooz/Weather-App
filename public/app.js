@@ -1,9 +1,4 @@
-/**
- * WeatherSync Client App Logic
- * Handlers for Dynamic Interactions:
- * 1. Fetching transformed weather & suitability score from Node.js backend
- * 2. CRUD task operations (Add, Toggle, Delete, Filter) communicating with backend
- */
+// Client-side JavaScript for Weather App
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -26,16 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeFilter = "all";
     let tasksData = [];
 
-    // ==========================================
-    // DYNAMIC ASPECT 1: Weather & Suitability API
-    // ==========================================
+    // Weather API fetch
     async function fetchWeather(city) {
-        weatherContent.innerHTML = `<div class="loading-spinner">Fetching live weather for ${city}...</div>`;
+        weatherContent.innerHTML = `<div class="loading-spinner">Loading weather for ${city}...</div>`;
         try {
             const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
             if (!res.ok) {
                 const errData = await res.json();
-                throw new Error(errData.error || "Failed to load weather.");
+                throw new Error(errData.error || "Failed to load weather data.");
             }
             const data = await res.json();
             renderWeather(data);
@@ -43,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
             weatherContent.innerHTML = `<div style="color: var(--accent-danger); padding: 1rem;">⚠️ ${err.message}</div>`;
             scoreValue.textContent = "--%";
             scoreBar.style.width = "0%";
-            recommendationText.textContent = "Unable to calculate suitability score.";
+            recommendationText.textContent = "Unable to compute weather score.";
         }
     }
 
@@ -51,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentCity = data.city;
         cityInput.value = `${data.city}, ${data.country}`;
 
-        // Render Hero Box
+        // Render current weather header
         weatherContent.innerHTML = `
             <div class="weather-hero">
                 <div class="weather-temp-box">
@@ -64,18 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="weather-metrics">
                     <div class="metric-item">Wind: <strong>${data.weather.windspeed} km/h</strong></div>
-                    <div class="metric-item">Rain Prob: <strong>${data.weather.precipitationProbability}%</strong></div>
+                    <div class="metric-item">Rain: <strong>${data.weather.precipitationProbability}%</strong></div>
                 </div>
             </div>
         `;
 
-        // Render Suitability Score
+        // Render suitability score
         const score = data.suitability.score;
         scoreValue.textContent = `${score}%`;
         scoreBar.style.width = `${score}%`;
         recommendationText.textContent = `${data.suitability.recommendation}`;
 
-        // Render Hourly Forecast
+        // Render 5-hour forecast
         hourlyList.innerHTML = data.forecast.map(item => `
             <div class="hourly-item">
                 <div class="hourly-time">${item.time}</div>
@@ -85,9 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // ==========================================
-    // DYNAMIC ASPECT 2: Task CRUD Operations
-    // ==========================================
+    // Task management API functions
     async function fetchTasks() {
         try {
             const res = await fetch('/api/tasks');
@@ -108,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (filtered.length === 0) {
-            taskList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">No tasks found for this view.</li>`;
+            taskList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">No tasks in this view.</li>`;
             return;
         }
 
@@ -122,20 +113,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="task-meta">
                     <span class="tag-badge ${task.outdoor ? 'tag-outdoor' : 'tag-indoor'}">
-                        ${task.outdoor ? ' Outdoor' : ' Indoor'}
+                        ${task.outdoor ? 'Outdoor' : 'Indoor'}
                     </span>
                     <button class="btn-delete" title="Delete Task">🗑️</button>
                 </div>
             `;
 
-            // Toggle completion listener
+            // Toggle checkbox handler
             const checkbox = li.querySelector('.task-checkbox');
             checkbox.addEventListener('change', async () => {
                 const newStatus = checkbox.checked ? 'completed' : 'pending';
                 await updateTaskStatus(task.id, newStatus);
             });
 
-            // Delete task listener
+            // Delete button handler
             const deleteBtn = li.querySelector('.btn-delete');
             deleteBtn.addEventListener('click', async () => {
                 await deleteTask(task.id);
@@ -198,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Helper: Escape HTML to prevent XSS
     function escapeHtml(str) {
         return str.replace(/[&<>'"]/g, 
             tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
@@ -237,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Initial Load
+    // Initial load
     fetchWeather("Berlin");
     fetchTasks();
 });

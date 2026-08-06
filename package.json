@@ -1,20 +1,19 @@
 {
-  "name": "weathersync",
+  "name": "weather-app",
   "version": "1.0.0",
-  "description": "WeatherSync - Smart Activity & Weather-Integrated Task Planner",
+  "description": "Weather and Task Planning Web Application for DLBCSPJWD01",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node --test tests/server.test.js"
   },
   "keywords": [
-    "java-web-dev",
+    "javascript",
     "express",
     "node",
-    "weather",
-    "tasks"
+    "weather-app"
   ],
-  "author": "IU Student",
+  "author": "Anas Mehfooz",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
