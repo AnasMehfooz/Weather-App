@@ -47,3 +47,7 @@ npm test
 * **Weather & Suitability Lookup**: Search for any city to view current temperature, wind speed, precipitation chance, 5-hour forecast, and calculated outdoor score.
 * **Task Management**: Create, complete, filter (All / Outdoor / Indoor), and delete daily tasks.
 * **Responsive Layout**: Designed to adapt smoothly across mobile, tablet, and desktop screens.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
